@@ -34,6 +34,8 @@ namespace ArGuildEncounter.Networking
         public string LocalPlayerId => _localPlayerId;
         public bool IsHost => _isHost;
         public float NetworkRttMs => _networkRttMs;
+        public long TotalPacketsSent { get; private set; }
+        public long TotalPacketsReceived { get; private set; }
 
         public event Action<NetworkConnectionState> ConnectionStateChanged;
         public event Action<NetworkRoomInfo> RoomUpdated;
@@ -324,6 +326,7 @@ namespace ArGuildEncounter.Networking
             int colonIndex = packetLine.IndexOf(':');
             if (colonIndex < 0) return;
 
+            TotalPacketsReceived++;
             string type = packetLine.Substring(0, colonIndex);
             string payload = packetLine.Substring(colonIndex + 1);
 
@@ -376,7 +379,8 @@ namespace ArGuildEncounter.Networking
                     case "HEARTBEAT_ACK":
                         if (float.TryParse(payload, out float sentTime))
                         {
-                            _networkRttMs = (Time.realtimeSinceStartup - sentTime) * 1000f;
+                            float sample = Mathf.Max(0f, (Time.realtimeSinceStartup - sentTime) * 1000f);
+                            _networkRttMs = _networkRttMs <= 0f ? sample : Mathf.Lerp(_networkRttMs, sample, 0.25f);
                         }
                         break;
                     case "DISCONNECT":
@@ -416,6 +420,7 @@ namespace ArGuildEncounter.Networking
                 byte[] bytes = Encoding.UTF8.GetBytes(line);
                 _netStream.Write(bytes, 0, bytes.Length);
                 _netStream.Flush();
+                TotalPacketsSent++;
             }
             catch (Exception ex)
             {
@@ -513,8 +518,20 @@ namespace ArGuildEncounter.Networking
             _tcpListener = null;
             _udpBeacon = null;
 
+            _networkThread = null;
+            _discoveryThread = null;
+
             _currentRoom = null;
             SetState(NetworkConnectionState.Disconnected);
+        }
+
+        /// <summary>
+        /// Produces diagnostic text summarizing current socket state, throughput, and ping.
+        /// </summary>
+        public string GetConnectionDiagnostics()
+        {
+            string roomCode = _currentRoom != null ? _currentRoom.roomCode : "None";
+            return $"[{TransportName}] State: {_state} | Role: {(_isHost ? "Host" : "Client")} | Room: {roomCode} | RTT: {_networkRttMs:F1}ms | TX: {TotalPacketsSent} | RX: {TotalPacketsReceived}";
         }
 
         private void SetState(NetworkConnectionState newState)
