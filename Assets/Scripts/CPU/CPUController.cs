@@ -120,6 +120,15 @@ namespace ArGuildEncounter.CPU
             }
         }
 
+        /// <summary>
+        /// Public tactical recommendation utility exposing the AI's move evaluation logic.
+        /// </summary>
+        public int GetRecommendedMoveSlot(PlayerCombatState cpu, PlayerCombatState target)
+        {
+            if (cpu == null || target == null) return LoadoutValidator.FallbackSlotIndex;
+            return EvaluateBestMove(cpu, target);
+        }
+
         private int EvaluateBestMove(PlayerCombatState cpu, PlayerCombatState target)
         {
             // Force Fallback rule check
@@ -142,7 +151,7 @@ namespace ArGuildEncounter.CPU
             {
                 if (i >= slots.Length) break;
                 SpellData spell = slots[i];
-                if (spell == null) continue;
+                if ((object)spell == null) continue;
 
                 if (spell.manaCost <= cpu.CurrentMana)
                 {
@@ -169,20 +178,37 @@ namespace ArGuildEncounter.CPU
         {
             float score = spell.baseDamage;
 
-            // Element multiplier evaluation
-            float mult = _coordinator.Config.GetDualTypeMultiplier(spell.type1, spell.type2, spell.isDualType, defenderElement);
+            // Element multiplier evaluation with null safety
+            float mult = (_coordinator != null && _coordinator.Config != null)
+                ? _coordinator.Config.GetDualTypeMultiplier(spell.type1, spell.type2, spell.isDualType, defenderElement)
+                : 1.0f;
             score *= mult;
 
-            // Guild affinity bonus
+            // Guild affinity bonus with null safety
             if (cpu.Guild != null && cpu.Guild.HasAffinityBonus(spell))
             {
-                score *= (1f + _coordinator.Config.guildOffensiveBonus);
+                float guildBonus = (_coordinator != null && _coordinator.Config != null)
+                    ? _coordinator.Config.guildOffensiveBonus
+                    : 0.25f;
+                score *= (1f + guildBonus);
             }
 
-            // Lethal prioritization: if this attack will defeat target, give massive priority
-            if (score >= target.CurrentHP)
+            // Path offensive bonus scaling
+            if (cpu.PathAttackBonus > 0f)
             {
-                score += 5000f;
+                score *= (1f + cpu.PathAttackBonus);
+            }
+
+            // Lethal prioritization: account for defender's path damage reduction
+            float effectiveDamageAgainstDefender = score;
+            if (target.PathDamageReduction > 0f)
+            {
+                effectiveDamageAgainstDefender *= (1f - target.PathDamageReduction);
+            }
+
+            if (effectiveDamageAgainstDefender >= target.CurrentHP)
+            {
+                score += 5000f; // Decisive lethal move
             }
 
             // Healing prioritization if CPU is low on HP
