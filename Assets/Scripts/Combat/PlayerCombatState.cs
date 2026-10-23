@@ -69,10 +69,8 @@ namespace ArGuildEncounter.Combat
         public event Action<int, int> OnHPChanged; // (current, max)
         public event Action<int, int> OnManaChanged; // (current, max)
         public event Action OnDeath;
-#pragma warning disable CS0067
         public event Action<ActiveStatusInstance> OnStatusApplied;
         public event Action<ActiveStatusInstance> OnStatusRemoved;
-#pragma warning restore CS0067
         public event Action<string> OnControlStateChanged;
 
         public PlayerCombatState(string playerId, CombatConfig config, GuildData guild)
@@ -427,6 +425,70 @@ namespace ArGuildEncounter.Combat
             return bonus;
         }
 
+        /// <summary>
+        /// Authoritatively applies or stacks a generic StatusEffectData instance.
+        /// Handles duration refresh, stack limits, and dispatches OnStatusApplied.
+        /// </summary>
+        public void ApplyStatusEffect(StatusEffectData data)
+        {
+            if (data == null) return;
+
+            ActiveStatusInstance existing = _activeStatuses.Find(s => s.data != null && s.data.statusId == data.statusId);
+            if (existing != null)
+            {
+                switch (data.stackingRule)
+                {
+                    case StatusStackingRule.RefreshDuration:
+                        existing.remainingTurns = Mathf.Max(existing.remainingTurns, data.durationTurns);
+                        break;
+                    case StatusStackingRule.StackDuration:
+                        existing.remainingTurns += data.durationTurns;
+                        break;
+                    case StatusStackingRule.StackIntensity:
+                        existing.currentStacks = Mathf.Min(existing.currentStacks + 1, Mathf.Max(1, data.maxStacks));
+                        existing.remainingTurns = Mathf.Max(existing.remainingTurns, data.durationTurns);
+                        break;
+                    default:
+                        existing.remainingTurns = Mathf.Max(existing.remainingTurns, data.durationTurns);
+                        break;
+                }
+                OnStatusApplied?.Invoke(existing);
+            }
+            else
+            {
+                var newInstance = new ActiveStatusInstance(data);
+                _activeStatuses.Add(newInstance);
+                OnStatusApplied?.Invoke(newInstance);
+            }
+        }
+
+        public bool RemoveStatusEffect(string statusId)
+        {
+            if (string.IsNullOrEmpty(statusId)) return false;
+
+            int index = _activeStatuses.FindIndex(s => s.data != null && s.data.statusId == statusId);
+            if (index >= 0)
+            {
+                var removed = _activeStatuses[index];
+                _activeStatuses.RemoveAt(index);
+                OnStatusRemoved?.Invoke(removed);
+                return true;
+            }
+            return false;
+        }
+
+        public void ClearStatuses(bool notify = true)
+        {
+            if (notify && OnStatusRemoved != null)
+            {
+                for (int i = 0; i < _activeStatuses.Count; i++)
+                {
+                    OnStatusRemoved.Invoke(_activeStatuses[i]);
+                }
+            }
+            _activeStatuses.Clear();
+        }
+
         public float GetTotalStatusMissModifier()
         {
             float total = 0f;
@@ -436,7 +498,10 @@ namespace ArGuildEncounter.Combat
 
             for (int i = 0; i < _activeStatuses.Count; i++)
             {
-                total += _activeStatuses[i].data.missModifier;
+                if (_activeStatuses[i]?.data != null)
+                {
+                    total += _activeStatuses[i].data.missModifier;
+                }
             }
             return total;
         }
@@ -461,9 +526,15 @@ namespace ArGuildEncounter.Combat
             for (int i = _activeStatuses.Count - 1; i >= 0; i--)
             {
                 var status = _activeStatuses[i];
+                if (status == null || status.data == null)
+                {
+                    _activeStatuses.RemoveAt(i);
+                    continue;
+                }
+
                 if (status.data.damagePerTurn > 0)
                 {
-                    int totalDot = status.data.damagePerTurn * status.currentStacks;
+                    int totalDot = status.data.damagePerTurn * Mathf.Max(1, status.currentStacks);
                     ApplyDamage(totalDot);
                 }
 
@@ -491,7 +562,10 @@ namespace ArGuildEncounter.Combat
 
             for (int i = 0; i < _activeStatuses.Count; i++)
             {
-                list.Add($"{_activeStatuses[i].data.displayName} [{_activeStatuses[i].remainingTurns}T]");
+                if (_activeStatuses[i]?.data != null)
+                {
+                    list.Add($"{_activeStatuses[i].data.displayName} [{_activeStatuses[i].remainingTurns}T]");
+                }
             }
 
             return list.Count > 0 ? string.Join(" | ", list) : "No active statuses";
