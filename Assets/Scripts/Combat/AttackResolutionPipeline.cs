@@ -54,6 +54,37 @@ namespace ArGuildEncounter.Combat
             _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
+        public static bool ValidatePreconditions(PlayerCombatState attacker, PlayerCombatState defender, SpellData spell, out string error)
+        {
+            error = string.Empty;
+            if (attacker == null)
+            {
+                error = "Attacker combat state is null.";
+                return false;
+            }
+            if (defender == null)
+            {
+                error = "Defender combat state is null.";
+                return false;
+            }
+            if (!attacker.IsAlive)
+            {
+                error = $"Attacker '{attacker.PlayerId}' is defeated.";
+                return false;
+            }
+            if (!defender.IsAlive)
+            {
+                error = $"Defender '{defender.PlayerId}' is defeated.";
+                return false;
+            }
+            if ((object)spell == null)
+            {
+                error = "Selected spell is null.";
+                return false;
+            }
+            return true;
+        }
+
         public AttackResolutionResult ResolveAttack(
             PlayerCombatState attacker,
             PlayerCombatState defender,
@@ -65,9 +96,22 @@ namespace ArGuildEncounter.Combat
             Func<float> rngProvider = null,
             List<SpellData> bluffPool = null)
         {
-            Func<float> roll = rngProvider ?? (() => (float)new System.Random().NextDouble());
             var result = new AttackResolutionResult();
             var diag = new CombatDiagnosticData();
+
+            // Precondition validation
+            if (!ValidatePreconditions(attacker, defender, spell, out string validationError))
+            {
+                result.isCastSuccessful = false;
+                result.isHit = false;
+                result.summaryText = $"Attack resolution aborted: {validationError}";
+                diag.hpTrace = validationError;
+                diag.damageTrace = "0 DMG (Validation Error)";
+                result.diagnosticData = diag;
+                return result;
+            }
+
+            Func<float> roll = rngProvider ?? (() => (float)new System.Random().NextDouble());
 
             // Track initial vitals for trace capture
             diag.attackerId = attacker?.PlayerId ?? "Player";
@@ -294,6 +338,7 @@ namespace ArGuildEncounter.Combat
             int finalDamage = Mathf.Max(1, Mathf.RoundToInt(calculatedDamage));
             result.finalDamageDealt = finalDamage;
             diag.finalDamage = finalDamage;
+            diag.damageDealt = finalDamage;
 
             // 9. Apply Damage to Defender
             defender.ApplyDamage(finalDamage);
