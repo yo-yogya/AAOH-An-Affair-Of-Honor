@@ -1,0 +1,81 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <NoWarn>0649;0414;0169;0067;SYSLIB0050</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Reference UnityEngine modules -->
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>C:\Program Files\Unity\Hub\Editor\6000.6.0f1\Editor\Data\Managed\UnityEngine\UnityEngine.CoreModule.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UIModule">
+      <HintPath>C:\Program Files\Unity\Hub\Editor\6000.6.0f1\Editor\Data\Managed\UnityEngine\UnityEngine.UIModule.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="UnityEngine.PhysicsModule">
+      <HintPath>C:\Program Files\Unity\Hub\Editor\6000.6.0f1\Editor\Data\Managed\UnityEngine\UnityEngine.PhysicsModule.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>C:\Program Files\Unity\Hub\Editor\6000.6.0f1\Editor\Data\Managed\UnityEngine\UnityEngine.IMGUIModule.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="UnityEngine.AudioModule">
+      <HintPath>C:\Program Files\Unity\Hub\Editor\6000.6.0f1\Editor\Data\Managed\UnityEngine\UnityEngine.AudioModule.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>C:\Program Files\Unity\Hub\Editor\6000.6.0f1\Editor\Data\Managed\UnityEngine\UnityEngine.TextRenderingModule.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>C:\Program Files\Unity\Hub\Editor\6000.6.0f1\Editor\Data\Resources\PackageManager\ProjectTemplates\libcache\com.unity.template.urp-blank-17.2.1\ScriptAssemblies\UnityEngine.UI.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>..\Library\ScriptAssemblies\Unity.TextMeshPro.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Unity.InputSystem">
+      <HintPath>..\Library\ScriptAssemblies\Unity.InputSystem.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Unity.XR.ARFoundation">
+      <HintPath>..\Library\ScriptAssemblies\Unity.XR.ARFoundation.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Unity.XR.ARSubsystems">
+      <HintPath>..\Library\ScriptAssemblies\Unity.XR.ARSubsystems.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Include all project scripts -->
+    <Compile Include="..\Assets\Scripts\Battle\*.cs" />
+    <Compile Include="..\Assets\Scripts\Combat\*.cs" />
+    <Compile Include="..\Assets\Scripts\Spells\*.cs" />
+    <Compile Include="..\Assets\Scripts\Guilds\*.cs" />
+    <Compile Include="..\Assets\Scripts\Environment\*.cs" />
+    <Compile Include="..\Assets\Scripts\StatusEffects\*.cs" />
+    <Compile Include="..\Assets\Scripts\Networking\*.cs" />
+    <Compile Include="..\Assets\Scripts\AR\*.cs" />
+    <Compile Include="..\Assets\Scripts\Voice\*.cs" />
+    <Compile Include="..\Assets\Scripts\Gesture\*.cs" />
+    <Compile Include="..\Assets\Scripts\UI\*.cs" />
+    <Compile Include="..\Assets\Scripts\Players\*.cs" />
+    <Compile Include="..\Assets\Scripts\CPU\*.cs" />
+    <Compile Include="..\Assets\Scripts\Debug\*.cs" />
+    <Compile Include="DataAssetGenerator.cs" />
+    <Compile Include="MatchFlowVerification.cs" />
+    <Compile Include="Program.cs" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8c32731f0029c047b0c0f5c285a7084, type: 3}
+  m_Name: Spell_ELECTRIC_BULLET
+  m_EditorClassIdentifier: ArGuildEncounter.Spells:SpellData
+  spellId: ELECTRIC_BULLET
+  displayName: Electric Bullet
+  description: ""
+  damageClass: 0
+  castTier: 1
+  type1: 3
+  isDualType: 1
+  type2: 5
+  voiceAliases:
+  - electric bullet
+  - electric_bullet
+  castWindow: 5
+  gestureId: GESTURE_THRUST
+  manaCost: 15
+  baseDamage: 60
+  missModifier: 0
+  healsCaster: 0
+  dealsSelfDamage: 0
+  isMoveSkip: 0
+  isForceFallback: 0
+  isCriticalEligible: 1
+  isBluffEligible: 1

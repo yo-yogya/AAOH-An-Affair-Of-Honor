@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b7c8411d9f8482fa6e5b410543e01a1, type: 3}
+  m_Name: Path_Defensive
+  m_EditorClassIdentifier: ArGuildEncounter.Combat:PathDefinition
+  archetype: 1
+  pathId: DEFENSIVE
+  displayName: Defensive
+  description: Fortified bastion build (+200 Max HP, +15% Damage Reduction) withstanding heavy assaults.
+  themeColor: {r: 0.2, g: 0.6, b: 0.95, a: 1}
+  payload:
+    maxHpModifier: 200
+    maxManaModifier: 0
+    attackMultiplierBonus: 0
+    damageReductionModifier: 0.15
+    bonusManaRegenPerTurn: 0
+    spawnOffset: {x: 0, y: 0, z: -0.35}
+  startingSpellsOverride: []
